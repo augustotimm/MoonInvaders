@@ -1,57 +1,159 @@
+use std::{thread, time};
 
 
+ static mut MOVEMENT_DIRECTION:bool = false;
+
+ static ALIEN: char = 'A';
+
+ static BLANK_SPACE:char = ' ';
+ static FPS: u64 = 1;
 
 fn main() {
     
-    let mut screen_arr: Vec<String> = Vec::new();
-    screen_arr.push(String::from(initialize_screen()));
-    screen_arr.push(String::from(initialize_screen()));
-    transpose_string_vec(screen_arr.clone());
-    println!("Screen ARR{}",screen_arr[0]);
-    let screen = initialize_screen();
-    println!("{}",String::from(screen));
+    let mut screen_arr: Vec<String> = initialize_screen();
     
-
-    let count = screen.chars().count();
-    
-    let mut chars = screen.chars();
-    
+    //let s = transpose_string_vec(screen_arr);
 
 
-    let mut charr:Vec<char> = screen.chars().collect();
+    loop{
+        unsafe{
+            screen_arr =move_whole_screen(screen_arr.clone(),MOVEMENT_DIRECTION);
+        }
+        clear_terminal();
+        print_game(screen_arr.clone());
+        let dur = time::Duration::from_millis(1000/FPS);
+        thread::sleep(dur);
+
+    }
+
+    
+    /*let mut v:Vec<char> = screen_arr[0].chars().collect();
+    let mut s: String = v.into_iter().collect();
+    println!("S:{:?}",s);
+
+
     //let s: String = charr.into_iter().collect();
     //println!("{}",s);
+    //println!("{:?}",screen);
+
+    //let mut test = move_whole_screen(screen_arr,true);
+
+    //println!("{:?}",test);
+*/
     
+}
 
-/*
-    let mut indiv_char = chars.next();
 
-    let mut result = move_right(indiv_char.clone(), chars.clone());
+fn clear_terminal(){
+    print!("{}[2J", 27 as char); //Clear Screen
 
-    println!("{}",result);
+}
 
-    let mut chars_r = result.chars();
+fn end_game(win:bool){
+    if !win{
+        println!("GAME OVER");
+        std::process::exit(0);
+    }
+    else{
+        std::process::exit(1);
+    }
+    
+}
 
-    let mut indiv_char_r = chars_r.next();
-    let mut result2 = move_left(indiv_char_r.clone(), chars_r.clone());
 
-    println!("{}",result2);
-  */  
+fn move_whole_screen(screen:Vec<String>, direction:bool)->Vec<String>{
+    let mut buf:Vec<String> = Vec::new();
+    if direction{
+        buf = move_whole_right(screen.clone(), buf);
+        if buf.is_empty(){
+            let tr_screen = transpose_string_vec(screen.clone());
+            buf = move_whole_right(tr_screen, buf.clone());
+            if buf.is_empty(){
+                end_game(false);
+            }
+            buf  = transpose_string_vec(buf.clone());
+        }
+        return buf;
+    }
+    else{
+        buf = move_whole_left(screen.clone(), buf);
+        if buf.is_empty(){
+            let  tr_screen = transpose_string_vec(screen.clone());
+            buf = move_whole_right(tr_screen, buf.clone());
+            if buf.is_empty(){
+                end_game(false);
+            }            
+            buf  = transpose_string_vec(buf.clone());
+        }
+        return buf;
+    }
 
+    fn move_whole_right(mut screen_rest:Vec<String>, mut moved_screen:Vec<String>)->Vec<String>{
+        
+        if screen_rest.is_empty(){
+            return moved_screen;
+        }
+        else{
+            let s = screen_rest.clone();
+            let mut chars = s[0].chars();
+            let temp=move_right(chars.next(), chars.clone());
+            if temp.is_empty(){
+                unsafe{
+                    MOVEMENT_DIRECTION = false;
+                }                
+                return Vec::new();
+            }
+            moved_screen.push(temp);
+            screen_rest.remove(0);
+            return move_whole_right(screen_rest.clone(), moved_screen);
+        }
+        
+    }
+
+    fn move_whole_left(mut screen_rest:Vec<String>, mut moved_screen:Vec<String>)->Vec<String>{
+        
+        if screen_rest.is_empty(){
+            return moved_screen;
+        }
+        else{
+            let s = screen_rest.clone();
+            let mut chars = s[0].chars();
+            let temp=move_left(chars.next(), chars.clone());
+            if temp.is_empty(){
+                unsafe{
+                    MOVEMENT_DIRECTION = true;
+                }                
+                return Vec::new();
+            }
+            moved_screen.push(temp);
+            screen_rest.remove(0);
+            return move_whole_left(screen_rest, moved_screen);
+        }
+        
+    }
 
 }
 
 
+fn initialize_screen()-> Vec<String>{
+    let mut vec = Vec::new();
 
-fn initialize_screen()-> &'static str{
+    vec.push(String::from("------------------------------"));
+    vec.push(String::from(" A A A A A A A A A A A A A    "));
+    vec.push(String::from(" A A A A A A A A A A A A A    "));
+    vec.push(String::from(" A A A A A A A A A A A A A    "));
+    vec.push(String::from(" A A A A A A A A A A A A A    "));
+    vec.push(String::from("                              "));
+    vec.push(String::from("                              "));
 
-    "--a--"
+    return vec;
+    
 }
 fn move_right(indiv: Option<char>,mut  _line:std::str::Chars<'_>)-> String{
     let mut buf = String::with_capacity(5);
     match indiv{
         Some(x)=>{
-            buf.push('-');
+            buf.push(BLANK_SPACE);
             buf.push(x);
             return move_rest_right(_line.next().clone(), _line.clone(), buf.clone());
             
@@ -74,7 +176,19 @@ fn move_rest_right(indiv: Option<char>, mut original_line:std::str::Chars<'_>, m
             
         },
         None=>{
-            new_line.pop();
+            let last =new_line.pop();
+            
+            match last{
+                Some(x)=>{
+                    if x == ALIEN{
+                        return String::new();
+                    }                    
+                },
+                None=>{
+                    return String::new();
+                }
+
+            }
             return new_line;
         },
     }
@@ -87,6 +201,9 @@ fn move_left(indiv: Option<char>,mut  _line:std::str::Chars<'_>)-> String{
     let mut buf = String::with_capacity(5);
     match indiv{
         Some(x)=>{
+            if x == ALIEN{
+               return String::new(); 
+            }
             return move_rest_left(_line.next().clone(), _line.clone(), buf.clone());
             
         } ,
@@ -107,7 +224,7 @@ fn move_rest_left(indiv: Option<char>, mut original_line:std::str::Chars<'_>, mu
             
         },
         None=>{
-            new_line.push('-');
+            new_line.push(BLANK_SPACE);
             return new_line;
         },
     }
@@ -116,12 +233,12 @@ fn move_rest_left(indiv: Option<char>, mut original_line:std::str::Chars<'_>, mu
     
 }
 
-fn transpose_string_vec(s_vec:Vec<String>){
+fn transpose_string_vec(s_vec:Vec<String>)-> Vec<String>{
     let mut s_char = stringvec_to_charvec(s_vec.clone());
-    println!("{:?}",s_char);
+    
     let mut result = transpose_vec(s_char.clone());
-    println!("{:?}",result);
-
+    let res = charvec_to_stringvec(result);
+    return res;
 
 }
 
@@ -170,7 +287,7 @@ fn transpose_vec(v:Vec<Vec<char>>)-> Vec<Vec<char>>{
         }
         else{
             
-            buf.push(vec!['0';v.len()]);
+            buf.push(vec![BLANK_SPACE;v.len()]);
             return init_transpose(v.clone(), buf.clone(), iter+1);
         }
     }
@@ -179,4 +296,32 @@ fn transpose_vec(v:Vec<Vec<char>>)-> Vec<Vec<char>>{
     return buf;
 }
 
+fn charvec_to_stringvec(mut vec_char:Vec<Vec<char>>)->Vec<String>{
+    if vec_char.len()<1{
+        return Vec::new();
+    }
+    else{
+        let mut buf:Vec<String> = Vec::new();
+        let v:Vec<char> =vec_char.remove(0);
+        let s:String = v.into_iter().collect();
+        buf.push(s);
+        
+        let mut rest =charvec_to_stringvec(vec_char.clone());
+        buf.append(&mut rest);
+            
+        return buf;
+    }
 
+}
+
+fn print_game(mut s:Vec<String>){
+    if s.is_empty(){
+        return;
+    }
+    else{
+        println!("{}",s[0]);
+        s.remove(0);
+        print_game(s.clone());
+    }
+    
+}
