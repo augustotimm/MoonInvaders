@@ -1,29 +1,72 @@
+
+extern crate termion;
+extern crate termios;
+extern crate eventual;
+
+
 use std::{thread, time};
+use time::{Instant, Duration};
+use termion::color;
+use termion::clear;
+use eventual::{Future, Async};
+
+use termios::{Termios, TCSANOW, ECHO, ICANON, tcsetattr};
+use std::io;
+use std::io::Read;
+use std::io::Write;
+use std::char;
 
 
- static mut MOVEMENT_DIRECTION:bool = false;
+
+
+ static mut MOVEMENT_DIRECTION:bool = true;
 
  static ALIEN: char = 'A';
 
  static BLANK_SPACE:char = ' ';
  static FPS: u64 = 1;
+ static PLAYER: char = 'V';
+
+ static mut INPUT: char = 'n';
 
 fn main() {
     
     let mut screen_arr: Vec<String> = initialize_screen();
-    
+    let mut player_line = init_player();
     //let s = transpose_string_vec(screen_arr);
-
-
+    
+    let mut handle = Future::spawn(move|| read_input());
     loop{
-        unsafe{
-            screen_arr =move_whole_screen(screen_arr.clone(),MOVEMENT_DIRECTION);
+        
+        //clear_terminal();
+        let crono: Instant = Instant::now();
+        println!("{}", clear::All);
+        let mut pr_screen = screen_arr.clone();
+        pr_screen.push(player_line.clone());
+        print_game(pr_screen);
+        let dur = Duration::from_millis(1000/FPS);
+        //thread::sleep(dur);
+        //read_input();
+        loop{
+            if crono.elapsed() >dur{
+                unsafe{
+                    screen_arr =move_whole_screen(screen_arr.clone(),MOVEMENT_DIRECTION);
+                }
+                break;
+                
+            }
+            if handle.is_ready(){
+                let data =handle.expect().unwrap();
+                handle = Future::spawn(move|| read_input());
+                println!("{:?}", data);
+            }
+            
+    
+        
         }
-        clear_terminal();
-        print_game(screen_arr.clone());
-        let dur = time::Duration::from_millis(1000/FPS);
-        thread::sleep(dur);
-
+        
+        
+        //read_input();
     }
 
     
@@ -43,11 +86,33 @@ fn main() {
     
 }
 
-
-fn clear_terminal(){
-    print!("{}[2J", 27 as char); //Clear Screen
-
+fn read_input() -> char{
+let stdin = 0; // couldn't get std::os::unix::io::FromRawFd to work 
+                   // on /dev/stdin or /dev/tty
+    let termios = Termios::from_fd(stdin).unwrap();
+    let mut new_termios = termios.clone();  // make a mutable copy of termios 
+                                            // that we will modify
+    new_termios.c_lflag &= !(ICANON | ECHO); // no echo and canonical mode
+    tcsetattr(stdin, TCSANOW, &mut new_termios).unwrap();
+    let stdout = io::stdout();
+    let mut reader = io::stdin();
+    let mut buffer = [0;1];  // read exactly one byte
+    
+    stdout.lock().flush().unwrap();
+    reader.read_exact(&mut buffer).unwrap();
+    let a: char= char::from(buffer[0]);
+    //println!("You have hit: {}", a);
+    tcsetattr(stdin, TCSANOW, & termios).unwrap();  // reset the stdin to 
+                                                    // original termios data
+    return a;
 }
+
+fn init_player()-> String{
+    String::from(String::from("---------------V--------------"))
+}
+
+
+
 
 fn end_game(win:bool){
     if !win{
@@ -319,7 +384,14 @@ fn print_game(mut s:Vec<String>){
         return;
     }
     else{
-        println!("{}",s[0]);
+        if s.len()>=2{
+            println!("{red}{game}{reset}",red = color::Fg(color::Red),game=s[0],reset = color::Fg(color::Reset));
+        }
+        else{
+            println!("{green}{game}{reset}",green = color::Fg(color::Green),game=s[0],reset = color::Fg(color::Reset));
+        }
+        
+
         s.remove(0);
         print_game(s.clone());
     }
