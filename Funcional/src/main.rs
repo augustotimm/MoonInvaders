@@ -617,6 +617,9 @@ fn move_equals_left(mut s:String, compared:char) ->String{
 
 fn check_victory(alien_space:Vec<String>)->bool{    
     
-    let ans:Vec<bool> =alien_space.into_iter().map(|x| return x.contains(ALIEN)).collect();
+    let ans:Vec<bool> =alien_space.into_iter().map(|x| return victory_condition(x)(ALIEN)).collect();
     return ! ans.contains(&true);
+    fn victory_condition(vec:String){
+        |x| vec.contains(x)
+    }
 }
