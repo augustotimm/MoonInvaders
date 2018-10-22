@@ -501,7 +501,7 @@ fn create_shot(mut player_line: String) -> String{
 }
 fn move_shot(mut screen:Vec<String>,shot:char, move_somewhere: &fn(String, &fn(char)->char)-> String, resolve:&fn(char)->char)-> Vec<String>{   
      if screen.is_empty(){
-        return Vec::new(); //FAIOU
+        return Vec::new(); 
     }
     else{
         let length = screen[0].len() -1;
@@ -619,7 +619,7 @@ fn check_victory(alien_space:Vec<String>)->bool{
     
     let ans:Vec<bool> =alien_space.into_iter().map(|x| return victory_condition(x)(ALIEN)).collect();
     return ! ans.contains(&true);
-    fn victory_condition(vec:String){
-        |x| vec.contains(x)
+    fn victory_condition(vec:String)-> impl Fn(char)->bool{
+       move |x| vec.contains(x)
     }
 }
