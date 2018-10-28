@@ -1,9 +1,6 @@
 [package]
-name = "invaders"
+name = "spaceinvaders"
 version = "0.1.0"
 authors = ["augustotimm <augusto.tes@gmail.com>"]
 
 [dependencies]
-termion = "1"
-termios = "0.3"
-eventual = "0.1.7"
