@@ -1,29 +1,10 @@
 mod game_object;
-pub enum GameImages{
-    Alien,
-    Player,
-    Shot,
-    Blank,
-    SpaceGuide
-}
+use self::game_object::GameObjectT;
+
     
 
 
-impl GameImagesT for GameImages{
-    fn value(&self)-> char{
-        match *self{
-            GameImages::Alien=> 'ゴ',
-            GameImages::Player=>'A',
-            GameImages::Shot => '!',
-            GameImages::Blank=> ' ',
-            GameImages::SpaceGuide=> '-',
-        }
-    }
-}
-trait  GameImagesT{
-    fn value(&self)->char;
-    
-}
+
 
 pub struct GameScreen{
     screen:Vec<Vec<char>>,
@@ -33,4 +14,8 @@ pub struct GameScreen{
 pub struct GameWorld{
     objects:Vec<game_object::GameObjectClass>,
     gs: GameScreen,
+}
+fn something(){
+    let a = game_object::Base::new((0,0));
+    
 }
