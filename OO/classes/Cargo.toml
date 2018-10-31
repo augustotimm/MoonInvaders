@@ -1,0 +1,6 @@
+[package]
+name = "classes"
+version = "0.1.0"
+authors = ["augustotimm <augusto.tes@gmail.com>"]
+
+[dependencies]

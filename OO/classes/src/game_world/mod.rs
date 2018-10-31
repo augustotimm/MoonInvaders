@@ -1,4 +1,4 @@
-
+mod game_object;
 pub enum GameImages{
     Alien,
     Player,
@@ -7,7 +7,9 @@ pub enum GameImages{
     SpaceGuide
 }
     
-impl GameImages{
+
+
+impl GameImagesT for GameImages{
     fn value(&self)-> char{
         match *self{
             GameImages::Alien=> 'ゴ',
@@ -18,4 +20,17 @@ impl GameImages{
         }
     }
 }
+trait  GameImagesT{
+    fn value(&self)->char;
+    
+}
 
+pub struct GameScreen{
+    screen:Vec<Vec<char>>,
+    down_limit:i8,
+    right_limit:i8,
+}
+pub struct GameWorld{
+    objects:Vec<game_object::GameObjectClass>,
+    gs: GameScreen,
+}

@@ -1,0 +1,1 @@
+/home/augusto/Documents/MLP/MoonInvaders/OO/classes/target/debug/classes-324942ea8eb92218: /home/augusto/Documents/MLP/MoonInvaders/OO/classes/src/game_world/game_object.rs /home/augusto/Documents/MLP/MoonInvaders/OO/classes/src/game_world/mod.rs /home/augusto/Documents/MLP/MoonInvaders/OO/classes/src/lib.rs
