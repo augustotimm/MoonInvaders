@@ -22,6 +22,7 @@ pub trait GameScreenT{
     fn update_screen(& mut self,Vec<GameObjectClass>);
     fn get_screen(&self) -> Vec<Vec<char>>;
     fn get_limits(&self)->(i8,i8);
+    fn end_screen(&mut self, win:bool, points:u32);
 }
 
 
@@ -31,7 +32,7 @@ impl GameScreenT for GameScreen{
     }
 
     fn new(_down_limit:i8,_right_limit:i8)->GameScreen{
-        let mut v:Vec<Vec<char>> =  vec![vec![GameImages::Blank.value();_right_limit as usize];_down_limit as usize];
+        let v:Vec<Vec<char>> =  vec![vec![GameImages::Blank.value();_right_limit as usize];_down_limit as usize];
         GameScreen{
             down_limit: _down_limit-1,
             right_limit:_right_limit-1,
@@ -83,6 +84,17 @@ impl GameScreenT for GameScreen{
         let dl = self.down_limit;
         let rl = self.right_limit;
         (dl,rl)
+    }
+    fn end_screen(&mut self,win: bool, points: u32){
+        self.screen = Vec::new();
+        if win{
+            self.screen.push(String::from("GAME OVER").chars().collect() );
+        }
+        else{
+            self.screen.push(String::from("YOU WIN").chars().collect() );
+        }
+        self.screen.push(points.to_string().chars().collect() );
+        
     }
 }
 

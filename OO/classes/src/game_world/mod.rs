@@ -66,6 +66,7 @@ pub struct GameWorld{
     r_key:char,
     l_key:char,
     s_key:char,
+    win:bool,
 }
 
 impl GameWorld{
@@ -74,7 +75,7 @@ impl GameWorld{
         let nobject: GameObjectClass = GameObjectClass::Base( game_object::Base::new((0i8,0i8)) );
         let mut new_screen:Vec<Vec<GameObjectClass>> = vec![vec![nobject;(limits.1 +1) as usize];(limits.0 +1) as usize];
         let objs =self.objects.clone();
-        let mut new_objs:Vec<GameObjectClass> = Vec::new();
+        let new_objs:Vec<GameObjectClass> = Vec::new();
         for x in objs{
             match x{
                 GameObjectClass::Player(p)=>{
@@ -87,6 +88,9 @@ impl GameWorld{
                         },
                         _=>{
                             self.end_game(false);
+                            self.objects = Vec::new();
+                            return errors::ScreenLimit::Ok((-1,-1));
+
                         }
                         
                     }
@@ -112,6 +116,8 @@ impl GameWorld{
                                         GameObjectClass::Alien(a)=>{},
                                         GameObjectClass::Player(p)=>{
                                             self.end_game(false);
+                                            self.objects = Vec::new();
+                                            return errors::ScreenLimit::Ok((-1,-1));
                                         },
                                         GameObjectClass::Shot(s)=>{
                                             let res = delegate_collision(GameObjectClass::Alien( AliensClass::Alien(a)),GameObjectClass::Shot(s), &self.points);
@@ -188,6 +194,8 @@ impl GameWorld{
                                                     },
                                                     GameObjectClass::Player(p)=>{
                                                         self.end_game(false);
+                                                        self.objects = Vec::new();
+                                                        return errors::ScreenLimit::Ok((-1,-1));
                                                     },
                                                 }
 
@@ -198,6 +206,8 @@ impl GameWorld{
                                         GameObjectClass::Alien(a)=>{},
                                         GameObjectClass::Player(p)=>{
                                             self.end_game(false);
+                                            self.objects = Vec::new();
+                                            return errors::ScreenLimit::Ok((-1,-1));
                                         },
                                         GameObjectClass::Shot(s)=>{
                                             let res = delegate_collision(GameObjectClass::Alien( AliensClass::SupAlien(a)),GameObjectClass::Shot(s), &self.points);
@@ -267,7 +277,7 @@ impl GameWorld{
                                                 }
                                                 x_=>{       
                                                     new_screen[s_n_pos.0 as usize][s_n_pos.1 as usize] = x;
-                                                    
+                                                    continue;
                                                 }
 
                                             }
@@ -277,10 +287,30 @@ impl GameWorld{
                                 },
                                 GameObjectClass::Player(p)=>{
                                     self.end_game(false);
+                                    self.objects = Vec::new();
+                                    return errors::ScreenLimit::Ok((-1,-1));
                                 },
-                                GameObjectClass::Shot(ss)=>{
-                                    
-                                    
+                                GameObjectClass::Shot(mut ss)=>{
+                                    let res = delegate_collision(GameObjectClass::Shot(s),GameObjectClass::Shot(ss), &self.points);
+                                    match res{
+                                        errors::CollisionErr::Err=>{
+
+                                        },
+                                        errors::CollisionErr::Ok(o)=>{
+                                            match o{
+                                                GameObjectClass::Base(b)=>{
+                                                    new_screen[s_n_pos.0 as usize][s_n_pos.1 as usize] = nobject;
+                                                    continue;
+                                                }
+                                                x_=>{       
+                                                    new_screen[s_n_pos.0 as usize][s_n_pos.1 as usize] = x;
+                                                    continue;
+                                                }
+
+                                            }
+                                            
+                                        }
+                                    }
                                 },
                             }
                         }
@@ -323,21 +353,26 @@ impl GameWorldT<GameWorld> for GameWorld{
                 let ret2 = self.move_all(delegate_collision);
                 match ret2{
                     errors::ScreenLimit::Ok(o)=>{
-                        new_dir = self.cur_dir;
+                        if o.0 != -1i8{
+                            new_dir = self.cur_dir;
+                        }
                     },  
                     _=>{},      
                 }
 
             },
             errors::ScreenLimit::Ok(o)=>{
-                new_dir = self.cur_dir;
+                if o.0 != -1i8{
+                    new_dir = self.cur_dir;
+                }
+                
             },
         }
         
         if (old_dir != new_dir) && (new_dir != Direction::Up ){
            self.cur_dir = if old_dir == Direction::Right{Direction::Left }else{Direction::Right};
         }
-        
+        errors::CollisionErr::Ok( GameObjectClass::Base(Base::new_img(GameImages::None.value(),(0,0) )));
     }
     fn new(d_limit: i8, l_limit: i8)->GameWorld{
         GameWorld{
@@ -349,6 +384,7 @@ impl GameWorldT<GameWorld> for GameWorld{
             r_key:'d',
             l_key:'a',
             s_key:'k',
+            win:false,
         }
     }
     
@@ -369,10 +405,13 @@ impl GameWorldT<GameWorld> for GameWorld{
             r_key:'d',
             l_key:'a',
             s_key:'k',
+            win:false,
         }
     }
-    fn end_game(&self,win:bool){
-
+    fn end_game(&mut self,win:bool){
+        self.gs.end_screen(win,self.points);
+        self.win = win;
+        return;
     }
     fn add_object(&mut self, go:GameObjectClass){
         self.objects.push(go)
@@ -425,6 +464,9 @@ impl GameWorldT<GameWorld> for GameWorld{
         
 
     }
+    fn get_win(&self)->bool{
+        self.win
+    }
 }
 
 pub trait GameWorldT<G:GameWorldT<G>>{
@@ -437,9 +479,10 @@ pub trait GameWorldT<G:GameWorldT<G>>{
         new_world.set_screen(gs);
         new_world
     }
-    fn end_game(&self,win:bool);
+    fn end_game(&mut self,win:bool);
     fn add_object(&mut self, go:GameObjectClass);
     fn enter_input(&mut self,key:char);
+    fn get_win(&self)->bool;
 }
 
 #[test]
@@ -593,37 +636,43 @@ fn test_movew_sup(){
         }
     }
 }
-/*
-fn something(){
-    let a = game_object::Base::new((0,0));
-    a.get_img();
-    
+
+
+#[test]
+fn test_movew_lose(){
+    let mut sc = GameScreen::new(4i8, 2i8);
+       
+    let al_pos = (0i8,0i8);
+    let sal_pos = (1,0);
+    let pl_pos = (3i8,1i8);
+    let mut gw = GameWorld::new_w_screen(sc);
+    let pl = Player::new_img(GameImages::Player.value(),pl_pos);
+    let gpl : GameObjectClass = GameObjectClass::Player(pl);
+    gw.add_object(GameObjectClass::Alien( AliensClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) ) );
+    gw.add_object(GameObjectClass::Alien( AliensClass::SupAlien( SupAlien::new_img(GameImages::SAlien.value(), sal_pos ) ) ) );
+    gw.add_object(gpl);
+    gw.move_world(tes_delegate_collision);
+    let objects = gw.get_obj();
+    for obj in objects{
+        match obj{
+            GameObjectClass::Alien(a)=>{
+                match a{
+                    AliensClass::SupAlien(sal)=>{
+                        assert_eq!(a.get_position(),(1,1));
+                    },
+                    AliensClass::Alien(al)=>{
+                        assert_eq!(a.get_position(),(0,1));
+                    },
+                }
+                
+            }
+            GameObjectClass::Player(p)=>{
+                assert_eq!(p.get_position(),pl_pos);
+            }
+            GameObjectClass::Shot(s)=>{
+                assert_eq!(s.get_position(),(2,1));
+            },
+            _=>{},
+        }
+    }
 }
-*/
-
-
-/*
-***** MOVE
-let res = a.move_alien(1i8,self.right_limit,self.down_limit,self.cur_dir );
-                        match res{
-                            errors::ScreenLimit::Err=>{
-                                ok_dir = false;
-                                match self.cur_dir{
-                                    Direction::Right=>{
-                                        new_dir = Direction::Down;
-                                        self.cur_dir = Direction::Left;
-                                    },
-                                    Direction::Left=>{
-                                        new_dir = Direction::Down;
-                                        self.cur_dir = Direction::Right;
-                                    },
-                                    _=>{
-                                        //Throw Error
-                                    }
-                                }
-                            }
-                            errors::ScreenLimit::Ok(x)=>{
-                                new_screen[x.0 as usize][x.1 as usize] = a.get_img();
-                            }
-                        }
-*/

@@ -103,7 +103,7 @@ impl PlayerT for Player{
     fn shoot(&mut self)->Shot{
         let mut pos  = self.my_base.position;
         pos.0 = pos.0 -1;
-        let mut shoot:Shot = Shot::new_img(GameImages::Shot.value(),pos);
+        let shoot:Shot = Shot::new_img(GameImages::Shot.value(),pos);
         return shoot;
 
     }
