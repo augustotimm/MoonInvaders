@@ -4,6 +4,7 @@ use super::game_object::AlienT;
 use super::game_object::PlayerT;
 use super::game_object::BaseT;
 use super::game_object::GameObjectClass;
+use super::game_object::AliensClass;
 use super::game_object::Alien;
 use super::game_object::Player;
 use super::game_object::GameImages;
@@ -42,30 +43,10 @@ impl GameScreenT for GameScreen{
         let mut new_screen:Vec<Vec<char>> = vec![vec![' ';(self.right_limit+1i8) as usize];(self.down_limit+1i8)  as usize];
            
         for obj in objects{
-                       
-            match obj{
-                GameObjectClass::Alien( a)=>{        
-                    let img:char = a.my_base.get_img();
-                    let position:(i8,i8) = a.my_base.get_position();
-                    new_screen[position.0 as usize][position.1 as usize] = img;
-                }
-                GameObjectClass::Player(p)=>{
-                    let img:char = p.my_base.get_img();
-                    let position:(i8,i8) = p.my_base.get_position();
-                    new_screen[position.0 as usize][position.1 as usize] = img;
-                }
-                GameObjectClass::Base(b)=>{
-                    let img:char = b.get_img();
-                    let position:(i8,i8) = b.get_position();
-                    new_screen[position.0 as usize][position.1 as usize] = img;
-                },
-                GameObjectClass::Shot(s)=>{
-                    let img:char = s.get_img();
-                    let position:(i8,i8) = s.get_position();
-                    new_screen[position.0 as usize][position.1 as usize] = img;
-                },
-            }
-             
+            let img:char = obj.get_img();
+            let position:(i8,i8) = obj.get_position();
+            new_screen[position.0 as usize][position.1 as usize] = img;
+            
         }
         
         for i in 0..self.down_limit-1{
@@ -75,6 +56,8 @@ impl GameScreenT for GameScreen{
                     a if a == GameImages::Alien.value()=>{},
                     //p if p == GameImages::Player.value()=>{},
                     s if s == GameImages::Shot.value()=>{},
+                    sa if sa == GameImages::SAlien.value()=>{},
+                    sa if sa == GameImages::Player.value()=>{},
                     _=>{
                         new_screen[i as usize][j as usize] = GameImages::Blank.value();
                     }
@@ -110,7 +93,7 @@ fn test_update_screen() {
     let mut go_list: Vec<GameObjectClass> = Vec::new();
     let al_pos = (0i8,0i8);
     let pl_pos = (2i8,1i8);
-    go_list.push(GameObjectClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) );
+    go_list.push(GameObjectClass::Alien( AliensClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) )  );
     go_list.push(GameObjectClass::Player( Player::new_img(GameImages::Player.value(), pl_pos ) ) );
     sc.update_screen(go_list);
     let screen = sc.get_screen();

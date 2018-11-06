@@ -6,6 +6,7 @@ pub enum GameImages{
     Shot,
     Blank,
     SpaceGuide,
+    SAlien,
     None,
 }
 impl GameImagesT for GameImages{
@@ -17,6 +18,7 @@ impl GameImagesT for GameImages{
             GameImages::Blank=> ' ',
             GameImages::SpaceGuide=> '-',
             GameImages::None=> '',
+            GameImages::SAlien=>'ミ',
         }
     }
 }
@@ -201,7 +203,7 @@ impl GameObjectT<Alien> for Alien{
 
 }
 
-pub trait AlienT : GameObjectT<Alien> + BaseT{
+pub trait AlienT : BaseT{
     fn move_alien(&mut self,speed:i8,down_limit:i8, right_limit:i8, dir:super::Direction)->errors::ScreenLimit;
 }
 pub trait GameObjectT<T>{
@@ -225,11 +227,107 @@ pub trait GameObjectT<T>{
 
 #[derive(Copy,Clone)]
 pub enum GameObjectClass{
-    Alien(Alien),
+    Alien(AliensClass),
     Player(Player),
     Shot(Shot),
     Base(Base),
 }
+
+impl BaseT for GameObjectClass{
+    fn get_img(&self)->char{
+        match self{
+            GameObjectClass::Alien(a)=>{
+                return a.get_img();
+            },
+            GameObjectClass::Base(b)=>{
+                return b.get_img();
+            },
+            GameObjectClass::Player(p)=>{
+                return p.get_img();
+            },
+            GameObjectClass::Shot(s)=>{
+                return s.get_img();
+            },
+
+        }
+        
+    }
+    fn get_position(&self)->(i8,i8){
+        match self{
+            GameObjectClass::Alien(a)=>{
+                return a.get_position();
+            },
+            GameObjectClass::Base(b)=>{
+                return b.get_position();
+            },
+            GameObjectClass::Player(p)=>{
+                return p.get_position();
+            },
+            GameObjectClass::Shot(s)=>{
+                return s.get_position();
+            },
+
+        }
+    }
+    fn set_pos(& mut self,npos:(i8,i8)){
+        match self{
+            GameObjectClass::Alien(a)=>{
+                return a.set_pos(npos);
+            },
+            GameObjectClass::Base(b)=>{
+                return b.set_pos(npos);
+            },
+            GameObjectClass::Player(p)=>{
+                return p.set_pos(npos);
+            },
+            GameObjectClass::Shot(s)=>{
+                return s.set_pos(npos);
+            },
+
+        }
+    }    
+}
+
+
+
+#[derive(Copy,Clone)]
+pub enum AliensClass{
+    Alien(Alien),
+    SupAlien(SupAlien),
+}
+impl BaseT for AliensClass{
+    fn get_img(&self)->char{
+        match self{
+            AliensClass::Alien(a)=>{
+                return a.get_img();
+            }
+            AliensClass::SupAlien(sa)=>{
+                return sa.get_img();
+            }
+        }
+    }
+    fn get_position(&self)->(i8,i8){
+        match self{
+            AliensClass::Alien(a)=>{
+                return a.get_position();
+            }
+            AliensClass::SupAlien(sa)=>{
+                return sa.get_position();
+            }
+        }    
+    }
+    fn set_pos(& mut self,npos:(i8,i8)){
+        match self{
+            AliensClass::Alien(a)=>{
+                return a.set_pos(npos);
+            }
+            AliensClass::SupAlien(sa)=>{
+                return sa.set_pos(npos);
+            }
+        }    
+    }
+}
+/*
 impl GameObjectClassT for GameObjectClass{
     fn new_alien(al:Alien)->GameObjectClass{
         GameObjectClass::Alien(al)
@@ -270,6 +368,11 @@ pub trait GameObjectClassT{
     fn new_player(pl:Player)->GameObjectClass;
     fn new_shot(st:Shot)->GameObjectClass;
 }
+*/
+
+/*
+*****************SHOT*****************
+*/
 #[derive(Copy,Clone)]
 pub struct Shot{
     pub my_base:Base,
@@ -353,6 +456,95 @@ impl GameObjectT<Shot> for Shot{
         }
     }
 }
+
+/*
+*****************SUPALIEN*****************
+*/
+#[derive(Copy,Clone)]
+pub struct SupAlien{
+    my_alien:Alien,
+}
+pub trait SupAlienT: AlienT{
+    fn shoot(&mut self)->Shot;
+}
+impl SupAlienT for SupAlien{
+      fn shoot(&mut self)->Shot{
+        let mut pos  = self.get_position();
+        pos.0 = pos.0 +1;
+        let mut shoot:Shot = Shot::new_img(GameImages::Shot.value(),pos);
+        shoot.set_dir(Direction::Down);
+        return shoot;
+
+    }
+
+}
+impl AlienT for SupAlien{
+    fn move_alien(&mut self,speed:i8,down_limit:i8, right_limit:i8,dir:Direction)->errors::ScreenLimit{
+        
+        let old_pos = self.my_alien.my_base.position;
+        match dir{
+            Direction::Up=>{}
+            Direction::Down=>{
+                if old_pos.0 + speed > down_limit{
+                    return errors::ScreenLimit::Err;        
+                }
+                else{
+                    self.my_alien.my_base.position = (old_pos.0+speed,old_pos.1);
+                    return errors::ScreenLimit::Ok(self.my_alien.my_base.position);
+                }
+            }
+            Direction::Left=>{
+                if old_pos.1 - speed < 0{
+                    return errors::ScreenLimit::Err;        
+                }
+                else{
+                    self.my_alien.my_base.position = (old_pos.0,old_pos.1-speed);
+                    return errors::ScreenLimit::Ok(self.my_alien.my_base.position);
+                }
+            }
+            Direction::Right=>{
+                if old_pos.1 + speed > right_limit{
+                    return errors::ScreenLimit::Err;        
+                }
+                else{
+                    self.my_alien.my_base.position = (old_pos.0,old_pos.1+speed);
+                    return errors::ScreenLimit::Ok(self.my_alien.my_base.position);
+                }
+            }
+        }
+        errors::ScreenLimit::Err
+        //return (1,2);
+    }
+}
+
+impl GameObjectT<SupAlien> for SupAlien{
+    fn new(_position:(i8,i8))->SupAlien{
+        SupAlien{
+            my_alien: Alien::new_img(GameImages::Player.value(),_position),
+        }
+       
+    }
+    fn new_wbase(_base:Base) -> SupAlien{
+        SupAlien{
+            my_alien: Alien::new_wbase(_base),
+        }
+    }
+}
+
+impl BaseT for SupAlien{
+    fn get_img(&self)->char{
+        self.my_alien.my_base.img
+    }
+    fn get_position(&self)->(i8,i8){
+        self.my_alien.my_base.position
+    }
+    fn set_pos(& mut self,npos:(i8,i8)){
+        self.my_alien.my_base.set_pos(npos);
+    }
+}
+
+
+
 
 
 

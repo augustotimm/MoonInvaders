@@ -1,7 +1,8 @@
 mod game_object;
+use self::game_object::SupAlien;
 use self::game_object::GameObjectT;
 use self::game_object::Base;
-
+use self::game_object::AliensClass;
 use self::game_object::GameImagesT;
 use self::game_object::AlienT;
 use self::game_object::PlayerT;
@@ -13,9 +14,14 @@ use self::game_object::GameImages;
 use self::game_screen::GameScreen;
 use self::game_screen::GameScreenT;
 use self::game_object::ShotT;
+use self::game_object::SupAlienT;
 use self::game_object::Shot;
-use self::game_object::GameObjectClassT;
+//use self::game_object::GameObjectClassT;
 mod game_screen;
+
+extern crate rand;
+
+use game_world::rand::prelude::*;
 
 
 
@@ -86,54 +92,148 @@ impl GameWorld{
                     }
                     
                 },
-                GameObjectClass::Alien(mut a)=>{
-                    let mv_res =a.move_alien(self.speed,limits.0,limits.1,self.cur_dir);
-                    match mv_res{
-                        errors::ScreenLimit::Err=>{
-                            return errors::ScreenLimit::Err;
-                            
-                        },
-                        errors::ScreenLimit::Ok(o)=>{
-                            let al_n_pos = a.get_position();
-                            let old = new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize];
-                            match old{
-                                GameObjectClass::Base(b)=>{
-                                    new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = GameObjectClass::Alien( a);
-                                    continue;
-
+                GameObjectClass::Alien(mut al)=>{
+                    match al{
+                        AliensClass::Alien(mut a)=>{
+                            let mv_res =a.move_alien(self.speed,limits.0,limits.1,self.cur_dir);
+                            match mv_res{
+                                errors::ScreenLimit::Err=>{
+                                    return errors::ScreenLimit::Err;        
                                 },
-                                GameObjectClass::Alien(a)=>{},
-                                GameObjectClass::Player(p)=>{
-                                    self.end_game(false);
-                                },
-                                GameObjectClass::Shot(s)=>{
-                                    let res = delegate_collision(GameObjectClass::Alien(a),GameObjectClass::Shot(s), &self.points);
-                                    match res{
-                                        errors::CollisionErr::Err=>{
+                                errors::ScreenLimit::Ok(o)=>{
+                                    let al_n_pos = a.get_position();
+                                    let old = new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize];
+                                    match old{
+                                        GameObjectClass::Base(b)=>{
+                                            new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = GameObjectClass::Alien( AliensClass::Alien(a));
+                                            continue;
 
                                         },
-                                        errors::CollisionErr::Ok(o)=>{
-                                            match o{
-                                                GameObjectClass::Base(b)=>{
-                                                    new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = nobject;
-                                                    continue;
-                                                }
-                                                x_=>{       
-                                                    new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = x;
+                                        GameObjectClass::Alien(a)=>{},
+                                        GameObjectClass::Player(p)=>{
+                                            self.end_game(false);
+                                        },
+                                        GameObjectClass::Shot(s)=>{
+                                            let res = delegate_collision(GameObjectClass::Alien( AliensClass::Alien(a)),GameObjectClass::Shot(s), &self.points);
+                                            match res{
+                                                errors::CollisionErr::Err=>{
+
+                                                },
+                                                errors::CollisionErr::Ok(o)=>{
+                                                    match o{
+                                                        GameObjectClass::Base(b)=>{
+                                                            new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = nobject;
+                                                            continue;
+                                                        }
+                                                        x_=>{       
+                                                            new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = x;
+                                                            
+                                                        }
+
+                                                    }
                                                     
+                                                }
+                                            }
+                                            
+                                        },
+                                    }
+
+                                },
+                        
+
+
+                            }
+
+                        },
+                        AliensClass::SupAlien(mut a)=>{
+                           let mv_res =a.move_alien(self.speed,limits.0,limits.1,self.cur_dir);
+                            match mv_res{
+                                errors::ScreenLimit::Err=>{
+                                    return errors::ScreenLimit::Err;        
+                                },
+                                errors::ScreenLimit::Ok(o)=>{
+                                    let al_n_pos = a.get_position();
+                                    let old = new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize];
+                                    match old{
+                                        GameObjectClass::Base(b)=>{
+                                            new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = GameObjectClass::Alien( AliensClass::SupAlien(a));
+                                            let y = random::<f32>();
+                                            if y > 0.8f32{
+                                                let new_shot =  a.shoot();
+                                                let s_pos = new_shot.get_position();
+                                                let old_obj = new_screen[s_pos.0 as usize ][s_pos.1 as usize ];
+                                                match old_obj{
+                                                    GameObjectClass::Alien(a)=>{},
+                                                    GameObjectClass::Base(b)=>{},
+                                                    GameObjectClass::Shot(some_shot)=>{
+                                                        let res = delegate_collision(GameObjectClass::Shot(some_shot),GameObjectClass::Shot(new_shot), &self.points);
+                                                        match res{
+                                                            errors::CollisionErr::Err=>{
+
+                                                            },
+                                                            errors::CollisionErr::Ok(o)=>{
+                                                                match o{
+                                                                    GameObjectClass::Base(b)=>{
+                                                                        new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = nobject;
+                                                                        continue;
+                                                                    },
+                                                                    x_=>{       
+                                                                        new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = x;                            
+                                                                    },
+    
+                                                                }
+                                                                
+                                                            },
+                                                        }
+                                                    },
+                                                    GameObjectClass::Player(p)=>{
+                                                        self.end_game(false);
+                                                    },
                                                 }
 
                                             }
-                                            
-                                        }
-                                    }
-                                    
-                                },
-                            }
+                                            continue;
 
-                        }
+                                        },
+                                        GameObjectClass::Alien(a)=>{},
+                                        GameObjectClass::Player(p)=>{
+                                            self.end_game(false);
+                                        },
+                                        GameObjectClass::Shot(s)=>{
+                                            let res = delegate_collision(GameObjectClass::Alien( AliensClass::SupAlien(a)),GameObjectClass::Shot(s), &self.points);
+                                            match res{
+                                                errors::CollisionErr::Err=>{
+
+                                                },
+                                                errors::CollisionErr::Ok(o)=>{
+                                                    match o{
+                                                        GameObjectClass::Base(b)=>{
+                                                            new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = nobject;
+                                                            continue;
+                                                        }
+                                                        x_=>{       
+                                                            new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = x;
+                                                            
+                                                        }
+
+                                                    }
+                                                    
+                                                }
+                                            }
+                                            
+                                        },
+                                    }
+
+                                },
+                        
+
+
+                            }
+                            
+                        },
 
                     }
+                   
                     
                 },
                 GameObjectClass::Shot(mut s)=>{
@@ -350,8 +450,8 @@ fn test_movew(){
     let pl_pos = (2i8,1i8);
     let mut gw = GameWorld::new_w_screen(sc);
     let pl = Player::new_img(GameImages::Player.value(),pl_pos);
-    let gpl : GameObjectClass = GameObjectClass::new_player(pl);
-    gw.add_object(GameObjectClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) );
+    let gpl : GameObjectClass = GameObjectClass::Player(pl);
+    gw.add_object(GameObjectClass::Alien( AliensClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) ) );
     gw.add_object(gpl);
     gw.move_world(tes_delegate_collision);
     let objects = gw.get_obj();
@@ -377,8 +477,8 @@ fn test_movew_limit(){
     let pl_pos = (2i8,1i8);
     let mut gw = GameWorld::new_w_screen(sc);
     let pl = Player::new_img(GameImages::Player.value(),pl_pos);
-    let gpl : GameObjectClass = GameObjectClass::new_player(pl);
-    gw.add_object(GameObjectClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) );
+    let gpl : GameObjectClass = GameObjectClass::Player(pl);
+    gw.add_object(GameObjectClass::Alien( AliensClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) )  );
     gw.add_object(gpl);
     gw.move_world(tes_delegate_collision);
     let objects = gw.get_obj();
@@ -419,8 +519,8 @@ fn test_input(){
     let pl_pos = (2i8,1i8);
     let mut gw = GameWorld::new_w_screen(sc);
     let pl = Player::new_img(GameImages::Player.value(),pl_pos);
-    let gpl : GameObjectClass = GameObjectClass::new_player(pl);
-    gw.add_object(GameObjectClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) );
+    let gpl : GameObjectClass = GameObjectClass::Player(pl);
+    gw.add_object(GameObjectClass::Alien( AliensClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) )  );
     gw.add_object(gpl);
     gw.enter_input('a');
     for obj in gw.get_obj(){
@@ -450,6 +550,46 @@ fn test_input(){
                 assert_eq!(s.get_position(),(1,1));
             }
             _=>{}
+        }
+    }
+}
+
+
+#[test]
+fn test_movew_sup(){
+    let mut sc = GameScreen::new(4i8, 2i8);
+       
+    let al_pos = (0i8,0i8);
+    let sal_pos = (1,0);
+    let pl_pos = (3i8,1i8);
+    let mut gw = GameWorld::new_w_screen(sc);
+    let pl = Player::new_img(GameImages::Player.value(),pl_pos);
+    let gpl : GameObjectClass = GameObjectClass::Player(pl);
+    gw.add_object(GameObjectClass::Alien( AliensClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) ) );
+    gw.add_object(GameObjectClass::Alien( AliensClass::SupAlien( SupAlien::new_img(GameImages::SAlien.value(), sal_pos ) ) ) );
+    gw.add_object(gpl);
+    gw.move_world(tes_delegate_collision);
+    let objects = gw.get_obj();
+    for obj in objects{
+        match obj{
+            GameObjectClass::Alien(a)=>{
+                match a{
+                    AliensClass::SupAlien(sal)=>{
+                        assert_eq!(a.get_position(),(1,1));
+                    },
+                    AliensClass::Alien(al)=>{
+                        assert_eq!(a.get_position(),(0,1));
+                    },
+                }
+                
+            }
+            GameObjectClass::Player(p)=>{
+                assert_eq!(p.get_position(),pl_pos);
+            }
+            GameObjectClass::Shot(s)=>{
+                assert_eq!(s.get_position(),(2,1));
+            },
+            _=>{},
         }
     }
 }
