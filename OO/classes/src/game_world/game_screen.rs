@@ -19,7 +19,7 @@ pub struct GameScreen{
 
 pub trait GameScreenT{
     fn new(_down_limit:i8,_right_limit:i8)->GameScreen;
-    fn update_screen(& mut self,Vec<GameObjectClass>);
+    fn update_screen(& mut self,&Vec<GameObjectClass>);
     fn get_screen(&self) -> Vec<Vec<char>>;
     fn get_limits(&self)->(i8,i8);
     fn end_screen(&mut self, win:bool, points:u32);
@@ -34,13 +34,13 @@ impl GameScreenT for GameScreen{
     fn new(_down_limit:i8,_right_limit:i8)->GameScreen{
         let v:Vec<Vec<char>> =  vec![vec![GameImages::Blank.value();_right_limit as usize];_down_limit as usize];
         GameScreen{
-            down_limit: _down_limit-1,
-            right_limit:_right_limit-1,
+            down_limit: _down_limit,
+            right_limit:_right_limit,
             screen:v,
         }
     } 
 
-    fn update_screen(& mut self,objects:Vec<GameObjectClass>){
+    fn update_screen(& mut self,objects:&Vec<GameObjectClass>){
         let mut new_screen:Vec<Vec<char>> = vec![vec![' ';(self.right_limit+1i8) as usize];(self.down_limit+1i8)  as usize];
            
         for obj in objects{

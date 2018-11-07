@@ -13,10 +13,10 @@ impl GameImagesT for GameImages{
     fn value(&self)-> char{
         match *self{
             GameImages::Alien=> 'ゴ',
-            GameImages::Player=>'A',
+            GameImages::Player=>'ヒ',
             GameImages::Shot => '!',
-            GameImages::Blank=> ' ',
-            GameImages::SpaceGuide=> '-',
+            GameImages::Blank=> '・',
+            GameImages::SpaceGuide=> 'ー',
             GameImages::None=> '',
             GameImages::SAlien=>'ミ',
         }
@@ -144,7 +144,7 @@ impl AlienT for Alien{
         match dir{
             Direction::Up=>{}
             Direction::Down=>{
-                if old_pos.0 + speed > down_limit{
+                if old_pos.0 + speed >= down_limit{
                     return errors::ScreenLimit::Err;        
                 }
                 else{
@@ -162,7 +162,7 @@ impl AlienT for Alien{
                 }
             }
             Direction::Right=>{
-                if old_pos.1 + speed > right_limit{
+                if old_pos.1 + speed >= right_limit{
                     return errors::ScreenLimit::Err;        
                 }
                 else{
