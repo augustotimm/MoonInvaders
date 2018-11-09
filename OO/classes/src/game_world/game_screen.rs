@@ -58,7 +58,8 @@ impl GameScreenT for GameScreen{
                     //p if p == GameImages::Player.value()=>{},
                     s if s == GameImages::Shot.value()=>{},
                     sa if sa == GameImages::SAlien.value()=>{},
-                    sa if sa == GameImages::Player.value()=>{},
+                    p if p == GameImages::Player.value()=>{},
+                    ashot if ashot == GameImages::AShot.value()=>{},
                     _=>{
                         new_screen[i as usize][j as usize] = GameImages::Blank.value();
                     }
@@ -87,12 +88,8 @@ impl GameScreenT for GameScreen{
     }
     fn end_screen(&mut self,win: bool, points: u32){
         self.screen = Vec::new();
-        if win{
-            self.screen.push(String::from("GAME OVER").chars().collect() );
-        }
-        else{
-            self.screen.push(String::from("YOU WIN").chars().collect() );
-        }
+        
+        self.screen.push(String::from("GAME OVER").chars().collect() );
         self.screen.push(points.to_string().chars().collect() );
         
     }
@@ -107,7 +104,7 @@ fn test_update_screen() {
     let pl_pos = (2i8,1i8);
     go_list.push(GameObjectClass::Alien( AliensClass::Alien( Alien::new_img(GameImages::Alien.value(), al_pos ) ) )  );
     go_list.push(GameObjectClass::Player( Player::new_img(GameImages::Player.value(), pl_pos ) ) );
-    sc.update_screen(go_list);
+    sc.update_screen(&go_list);
     let screen = sc.get_screen();
     for i in 0..sc.down_limit-1{
         let mut s = &screen[i as usize];

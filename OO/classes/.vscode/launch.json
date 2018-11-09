@@ -4,7 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
+        
         {
             "type": "lldb",
             "request": "launch",
@@ -35,6 +35,24 @@
             },
             "args": [],
             "cwd": "${workspaceFolder}"
-        }
+        },{
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Main Test",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--",
+                    "--nocapture",
+                    "test_main",
+                    //"--package=classes"
+                ],
+                "filter": {
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
     ]
 }

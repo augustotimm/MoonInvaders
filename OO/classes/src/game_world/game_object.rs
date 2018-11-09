@@ -4,6 +4,7 @@ pub enum GameImages{
     Alien,
     Player,
     Shot,
+    AShot,
     Blank,
     SpaceGuide,
     SAlien,
@@ -14,11 +15,12 @@ impl GameImagesT for GameImages{
         match *self{
             GameImages::Alien=> 'ゴ',
             GameImages::Player=>'ヒ',
-            GameImages::Shot => '!',
+            GameImages::Shot => 'エ',
             GameImages::Blank=> '・',
             GameImages::SpaceGuide=> 'ー',
             GameImages::None=> '',
             GameImages::SAlien=>'ミ',
+            GameImages::AShot=>'し',
         }
     }
 }
@@ -73,6 +75,7 @@ pub struct Alien{
 #[derive(Copy,Clone)]
 pub struct Player{
     pub my_base:Base,
+    lifes:u32,
 
 }
 
@@ -80,7 +83,7 @@ impl PlayerT for Player{
     fn walk(& mut self,dir:bool,right_limit:i8)->errors::ScreenLimit{
         let old_pos = self.my_base.position;
         if dir{
-            if old_pos.1 +1 > right_limit{
+            if old_pos.1 +1 >= right_limit{
                 return errors::ScreenLimit::Err;
             }
             else{
@@ -107,6 +110,18 @@ impl PlayerT for Player{
         return shoot;
 
     }
+    fn die(&mut self)->u32{
+        self.lifes = self.lifes -1;
+        self.lifes
+    }
+    fn get_lifes(&self)->u32{
+        self.lifes
+    }
+    fn gain_life(&mut self)->u32{
+        self.lifes = self.lifes +1;
+        self.lifes
+    }
+
 }
 impl BaseT for Player{
     fn get_img(&self)->char{
@@ -122,17 +137,22 @@ impl BaseT for Player{
 pub trait PlayerT: GameObjectT<Player> + BaseT{
     fn walk(& mut self,dir:bool,right_limit:i8)->errors::ScreenLimit;
     fn shoot(& mut self)->Shot;
+    fn die(&mut self)->u32;
+    fn get_lifes(&self)->u32;
+    fn gain_life(&mut self)->u32;
 }
 impl GameObjectT<Player> for Player{
     fn new(_position:(i8,i8))->Player{
         Player{
             my_base: Base::new_img(GameImages::Player.value(),_position),
+            lifes:1,
         }
        
     }
     fn new_wbase(_base:Base) -> Player{
         Player{
             my_base: _base,
+            lifes:1,
         }
     }
 }
@@ -327,48 +347,6 @@ impl BaseT for AliensClass{
         }    
     }
 }
-/*
-impl GameObjectClassT for GameObjectClass{
-    fn new_alien(al:Alien)->GameObjectClass{
-        GameObjectClass::Alien(al)
-    }
-    fn new_base(bs:Base)->GameObjectClass{
-        let b:GameObjectClass = GameObjectClass::Base(bs);
-        /*
-        let p:GameObjectClass  =GameObjectClass::Player(Player::new((0i8,0i8)));
-        let s:GameObjectClass  =GameObjectClass::Shot(Shot::new((0i8,0i8)));
-        let a:GameObjectClass  = GameObjectClass::Alien(Alien::new((0i8,0i8)));
-        match p{
-            GameObjectClass::Base(b1)=>{
-                println!("{}", b1.get_position().0);
-            }
-            GameObjectClass::Player(p1)=>{
-                println!("{}", p1.get_position().0);
-            }
-            GameObjectClass::Shot(s1)=>{
-                println!("{}", s1.get_position().0);
-            }
-            GameObjectClass::Alien(a1)=>{
-                println!("{}", a1.get_position().0);
-            }
-            
-        }*/
-        return b;
-    }
-    fn new_player(pl:Player)->GameObjectClass{
-        GameObjectClass::Player(pl)
-    }
-    fn new_shot(st:Shot)->GameObjectClass{
-        GameObjectClass::Shot(st)
-    }
-}
-pub trait GameObjectClassT{
-    fn new_alien(al:Alien)->GameObjectClass;
-    fn new_base(bs:Base)->GameObjectClass;
-    fn new_player(pl:Player)->GameObjectClass;
-    fn new_shot(st:Shot)->GameObjectClass;
-}
-*/
 
 /*
 *****************SHOT*****************
@@ -376,7 +354,7 @@ pub trait GameObjectClassT{
 #[derive(Copy,Clone)]
 pub struct Shot{
     pub my_base:Base,
-    dir:Direction,
+    pub dir:Direction,
 }
 
 impl BaseT for Shot{
@@ -393,7 +371,7 @@ impl BaseT for Shot{
 
 pub trait ShotT:GameObjectT<Shot>+BaseT{
     fn move_shot(&mut self, dl:i8, rl:i8)->errors::ScreenLimit;
-    fn set_dir(&mut self,_dir:Direction);
+
 }
 impl ShotT for Shot{
    fn move_shot(&mut self,dl:i8,rl:i8)->errors::ScreenLimit{
@@ -410,7 +388,7 @@ impl ShotT for Shot{
                 }
             }
             Direction::Down=>{
-                if old_pos.0 + 1 > dl{
+                if old_pos.0 + 1 >= dl{
                     return errors::ScreenLimit::Err;        
                 }
                 else{
@@ -428,7 +406,7 @@ impl ShotT for Shot{
                 }
             }
             Direction::Right=>{
-                if old_pos.1 + 1 > rl{
+                if old_pos.1 + 1 >= rl{
                     return errors::ScreenLimit::Err;        
                 }
                 else{
@@ -439,8 +417,7 @@ impl ShotT for Shot{
         }
         errors::ScreenLimit::Err
    }
-   fn set_dir(&mut self,_dir:Direction){}
-}
+ }
 impl GameObjectT<Shot> for Shot{
      fn new(_position:(i8,i8))->Shot{
         Shot{
@@ -471,8 +448,8 @@ impl SupAlienT for SupAlien{
       fn shoot(&mut self)->Shot{
         let mut pos  = self.get_position();
         pos.0 = pos.0 +1;
-        let mut shoot:Shot = Shot::new_img(GameImages::Shot.value(),pos);
-        shoot.set_dir(Direction::Down);
+        let mut shoot:Shot = Shot::new_img(GameImages::AShot.value(),pos);
+        shoot.dir =Direction::Down;
         return shoot;
 
     }
@@ -480,7 +457,8 @@ impl SupAlienT for SupAlien{
 }
 impl AlienT for SupAlien{
     fn move_alien(&mut self,speed:i8,down_limit:i8, right_limit:i8,dir:Direction)->errors::ScreenLimit{
-        
+        self.my_alien.move_alien(speed, down_limit, right_limit, dir)
+        /*
         let old_pos = self.my_alien.my_base.position;
         match dir{
             Direction::Up=>{}
@@ -514,13 +492,14 @@ impl AlienT for SupAlien{
         }
         errors::ScreenLimit::Err
         //return (1,2);
+        */
     }
 }
 
 impl GameObjectT<SupAlien> for SupAlien{
     fn new(_position:(i8,i8))->SupAlien{
         SupAlien{
-            my_alien: Alien::new_img(GameImages::Player.value(),_position),
+            my_alien: Alien::new_img(GameImages::SAlien.value(),_position),
         }
        
     }
@@ -635,9 +614,8 @@ fn test_mv_alien_u(){
 fn test_walk_r(){
     let mut pl  = Player::new((1,1));
     
-    pl.walk(true, 2);
-    assert_eq!(pl.my_base.position,(1,2));
     let res = pl.walk(true, 2);
+    
     match res{
         errors::ScreenLimit::Err=>{
             assert!(true,"ERRO ESPERADO");
@@ -670,4 +648,33 @@ fn test_shoot(){
     assert_eq!(shot.get_position(),(1,2));
     shot.move_shot(2,2);
     assert_eq!(shot.get_position(),(0,2));
+}
+
+#[test]
+fn test_alien_class(){
+    let al = SupAlien::new_img(GameImages::SAlien.value(), (0i8,0i8));
+    let aal = AliensClass::SupAlien(al);
+    let mut test :bool =false;
+    match aal{
+        AliensClass::SupAlien(s)=>{
+            test =true
+        },
+        _=>{},
+    }
+    let gaal = GameObjectClass::Alien(aal);
+    assert!(test,true);
+    test = false;
+    match gaal{
+        GameObjectClass::Alien(a)=>{
+            match aal{
+            AliensClass::SupAlien(s)=>{
+                    test =true
+                },
+            _=>{},
+            }
+        },
+        
+        _=>{},
+    }
+    assert!(test,true);
 }

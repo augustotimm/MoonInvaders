@@ -5,6 +5,10 @@ authors = ["augustotimm <augusto.tes@gmail.com>"]
 
 [dependencies]
 rand = "0.5.5"
+eventual = "0.1.7"
+termion = "1"
+termios = "0.3"
+
 
  [lib]
  name = "classes"

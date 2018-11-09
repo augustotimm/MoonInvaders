@@ -139,7 +139,7 @@ fn main() {
 }
 
 fn read_input() -> char{
-let stdin = 0; // couldn't get std::os::unix::io::FromRawFd to work 
+    let stdin = 0; // couldn't get std::os::unix::io::FromRawFd to work 
                    // on /dev/stdin or /dev/tty
     let termios = Termios::from_fd(stdin).unwrap();
     let mut new_termios = termios.clone();  // make a mutable copy of termios 

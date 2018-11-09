@@ -1,0 +1,12 @@
+/home/augusto/Documents/MLP/MoonInvaders/OO/classes/target/debug/deps/libsyncbox-62ad4617618bf854.rlib: /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/lib.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/atomic.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/array_queue.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/delay_queue.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/linked_queue.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/thread_pool.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/queue.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/run.rs
+
+/home/augusto/Documents/MLP/MoonInvaders/OO/classes/target/debug/deps/syncbox-62ad4617618bf854.d: /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/lib.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/atomic.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/array_queue.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/delay_queue.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/linked_queue.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/thread_pool.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/queue.rs /home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/run.rs
+
+/home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/lib.rs:
+/home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/atomic.rs:
+/home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/array_queue.rs:
+/home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/delay_queue.rs:
+/home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/linked_queue.rs:
+/home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/thread_pool.rs:
+/home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/queue.rs:
+/home/augusto/.cargo/registry/src/github.com-1ecc6299db9ec823/syncbox-0.2.4/src/run.rs:
