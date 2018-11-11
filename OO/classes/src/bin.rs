@@ -17,6 +17,8 @@ use std::char;
 use classes::game_world::GameWorld;
 use classes::game_world::GameWorldT;
 use classes::game_world::errors::*;
+use classes::game_world::game_object;
+use classes::game_world::Direction;
 use classes::game_world::game_object::GameObjectClass;
 use classes::game_world::game_object::GameImagesT;
 use classes::game_world::game_object::BaseT;
@@ -94,15 +96,15 @@ fn print_screen(gw: &mut GameWorld){
     }
 }
 
-fn collision(obj1:GameObjectClass,obj2:GameObjectClass,points:&mut u32)->CollisionErr{
-    let nobject: GameObjectClass = GameObjectClass::Base( game_world::game_object::Base::new((0i8,0i8)) );
+fn collision(obj1:GameObjectClass,obj2:GameObjectClass,points:&mut i32)->CollisionErr{
+    let nobject: GameObjectClass = GameObjectClass::Base( game_object::Base::new((0i8,0i8)) );
     match obj1{
         GameObjectClass::Alien(a)=>{
             match obj2{
                 GameObjectClass::Shot(s)=>{
-                    if s.dir == game_world::Direction::Up{
+                    if s.dir == Direction::Up{
                         *points = *points +5;
-                        return CollisionErr::Ok( nobject);
+                        return CollisionErr::Die;
 
                     }
                     else{
@@ -125,7 +127,7 @@ fn collision(obj1:GameObjectClass,obj2:GameObjectClass,points:&mut u32)->Collisi
         GameObjectClass::Base(b)=>{
             match obj2{
                 GameObjectClass::Shot(s)=>{
-                    if b.get_img() ==game_world::game_object::GameImages::SpaceGuide.value(){
+                    if b.get_img() ==game_object::GameImages::SpaceGuide.value(){
                         return CollisionErr::Ok( GameObjectClass::Base(b));
                     }
                     else{
@@ -147,7 +149,13 @@ fn collision(obj1:GameObjectClass,obj2:GameObjectClass,points:&mut u32)->Collisi
         GameObjectClass::Player(p)=>{
           match obj2{
             GameObjectClass::Shot(s)=>{
-                return CollisionErr::Ok(nobject);
+                if s.dir == Direction::Down{
+                        *points = *points -10;
+                        return CollisionErr::Die;
+                    }
+                    else{
+                        return CollisionErr::Err;
+                }
             },
             GameObjectClass::Alien(a)=>{
                 return CollisionErr::Err;
@@ -163,9 +171,9 @@ fn collision(obj1:GameObjectClass,obj2:GameObjectClass,points:&mut u32)->Collisi
         GameObjectClass::Shot(s)=>{
             match obj2{
                 GameObjectClass::Alien(a)=>{
-                    if s.dir == game_world::Direction::Up{
+                    if s.dir == Direction::Up{
                         *points = *points +5;
-                        return CollisionErr::Ok( nobject);
+                        return CollisionErr::Die;
                     }
                     else{
                         return CollisionErr::Ok(GameObjectClass::Alien(a));
@@ -177,11 +185,22 @@ fn collision(obj1:GameObjectClass,obj2:GameObjectClass,points:&mut u32)->Collisi
     
                 },
                 GameObjectClass::Player(p)=>{
-                    return CollisionErr::Err;
+                    if s.dir == Direction::Down{
+                        *points = *points -10;
+                        return CollisionErr::Die;
+                    }
+                    else{
+                        return CollisionErr::Err;
+                    }
                 }
                 GameObjectClass::Shot(ss)=>{
-                    *points= *points+3;
-                    return CollisionErr::Ok(nobject);
+                    if s.dir != ss.dir{
+                        *points= *points+3;
+                        return CollisionErr::Die;
+                    }
+                    else{
+                        return CollisionErr::Ok(GameObjectClass::Shot(ss));
+                    }                    
                     
                 }
             }

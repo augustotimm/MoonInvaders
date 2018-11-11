@@ -75,7 +75,7 @@ pub struct Alien{
 #[derive(Copy,Clone)]
 pub struct Player{
     pub my_base:Base,
-    lifes:u32,
+    lifes:i32,
 
 }
 
@@ -110,14 +110,14 @@ impl PlayerT for Player{
         return shoot;
 
     }
-    fn die(&mut self)->u32{
+    fn die(&mut self)->i32{
         self.lifes = self.lifes -1;
         self.lifes
     }
-    fn get_lifes(&self)->u32{
+    fn get_lifes(&self)->i32{
         self.lifes
     }
-    fn gain_life(&mut self)->u32{
+    fn gain_life(&mut self)->i32{
         self.lifes = self.lifes +1;
         self.lifes
     }
@@ -137,22 +137,22 @@ impl BaseT for Player{
 pub trait PlayerT: GameObjectT<Player> + BaseT{
     fn walk(& mut self,dir:bool,right_limit:i8)->errors::ScreenLimit;
     fn shoot(& mut self)->Shot;
-    fn die(&mut self)->u32;
-    fn get_lifes(&self)->u32;
-    fn gain_life(&mut self)->u32;
+    fn die(&mut self)->i32;
+    fn get_lifes(&self)->i32;
+    fn gain_life(&mut self)->i32;
 }
 impl GameObjectT<Player> for Player{
     fn new(_position:(i8,i8))->Player{
         Player{
             my_base: Base::new_img(GameImages::Player.value(),_position),
-            lifes:1,
+            lifes:2,
         }
        
     }
     fn new_wbase(_base:Base) -> Player{
         Player{
             my_base: _base,
-            lifes:1,
+            lifes:2,
         }
     }
 }
@@ -458,41 +458,6 @@ impl SupAlienT for SupAlien{
 impl AlienT for SupAlien{
     fn move_alien(&mut self,speed:i8,down_limit:i8, right_limit:i8,dir:Direction)->errors::ScreenLimit{
         self.my_alien.move_alien(speed, down_limit, right_limit, dir)
-        /*
-        let old_pos = self.my_alien.my_base.position;
-        match dir{
-            Direction::Up=>{}
-            Direction::Down=>{
-                if old_pos.0 + speed > down_limit{
-                    return errors::ScreenLimit::Err;        
-                }
-                else{
-                    self.my_alien.my_base.position = (old_pos.0+speed,old_pos.1);
-                    return errors::ScreenLimit::Ok(self.my_alien.my_base.position);
-                }
-            }
-            Direction::Left=>{
-                if old_pos.1 - speed < 0{
-                    return errors::ScreenLimit::Err;        
-                }
-                else{
-                    self.my_alien.my_base.position = (old_pos.0,old_pos.1-speed);
-                    return errors::ScreenLimit::Ok(self.my_alien.my_base.position);
-                }
-            }
-            Direction::Right=>{
-                if old_pos.1 + speed > right_limit{
-                    return errors::ScreenLimit::Err;        
-                }
-                else{
-                    self.my_alien.my_base.position = (old_pos.0,old_pos.1+speed);
-                    return errors::ScreenLimit::Ok(self.my_alien.my_base.position);
-                }
-            }
-        }
-        errors::ScreenLimit::Err
-        //return (1,2);
-        */
     }
 }
 

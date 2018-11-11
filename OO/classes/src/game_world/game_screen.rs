@@ -22,7 +22,7 @@ pub trait GameScreenT{
     fn update_screen(& mut self,&Vec<GameObjectClass>);
     fn get_screen(&self) -> Vec<Vec<char>>;
     fn get_limits(&self)->(i8,i8);
-    fn end_screen(&mut self, win:bool, points:u32);
+    fn end_screen(&mut self, win:bool, points:i32);
 }
 
 
@@ -86,7 +86,7 @@ impl GameScreenT for GameScreen{
         let rl = self.right_limit;
         (dl,rl)
     }
-    fn end_screen(&mut self,win: bool, points: u32){
+    fn end_screen(&mut self,win: bool, points: i32){
         self.screen = Vec::new();
         
         self.screen.push(String::from("GAME OVER").chars().collect() );
