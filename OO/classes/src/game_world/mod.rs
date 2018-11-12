@@ -70,6 +70,8 @@ pub struct GameWorld{
     l_key:char,
     s_key:char,
     end:bool,
+    extra_lifes:i32,
+    shot_limit:i8,
 }
 
 impl GameWorld{
@@ -183,7 +185,7 @@ impl GameWorld{
                                                 GameObjectClass::Alien(AliensClass::SupAlien(mut sa))=>{
                                                     new_screen[al_n_pos.0 as usize][al_n_pos.1 as usize] = GameObjectClass::Alien(AliensClass::SupAlien(sa));
                                                     let y = random::<f32>();
-                                                    if y >= 0f32{
+                                                    if y >= 0.8f32{
                                                     let new_shot =sa.shoot();
                                                     let shot_pos = new_shot.get_position();
                                                     let old_obj = new_screen[shot_pos.0 as usize][shot_pos.1  as usize];
@@ -331,47 +333,7 @@ impl GameWorld{
         errors::ScreenLimit::Ok((0,0))
     }
 
-   /* fn sup_alien_shoot(&mut self, new_shot:Shot, old_obj:GameObjectClass,delegate_collision:fn(GameObjectClass,GameObjectClass,&mut i32)-> errors::CollisionErr )-> GameObjectClass{
-        
-            
-        match old_obj{
-            GameObjectClass::Alien(a)=>{
-                return GameObjectClass::Alien(a);
-            },
-            GameObjectClass::Base(b)=>{
-                return GameObjectClass::Shot(new_shot);
-            },
-            GameObjectClass::Shot(some_shot)=>{
-                let res = delegate_collision(GameObjectClass::Shot(some_shot),GameObjectClass::Shot(new_shot), &mut self.points);
-                match res{
-                    errors::CollisionErr::Err=>{
-                        return GameObjectClass::Base(Base::new((0,0)));
-                    },
-                    errors::CollisionErr::Ok(o)=>{
-                        match o{
-                            GameObjectClass::Base(b)=>{
-                                return GameObjectClass::Base(Base::new((0,0)));
-                            },
-                            x=>{       
-                                return x;
-                            },
-
-                        }
-                        
-                    },
-                    errors::CollisionErr::Die=>{
-                        return GameObjectClass::Player(Player::new((0,0)));
-                    },
-                }
-            },
-            GameObjectClass::Player(p)=>{
-                return GameObjectClass::Player(p);
-            },
-        }
-
-        
-    }
-    */
+  
     fn get_obj(&self)->Vec<GameObjectClass>{
         return self.objects.clone();
     }
@@ -384,14 +346,13 @@ impl GameWorld{
         for i in 0..al_limits.0{
             for j in 0..al_limits.1{
                 if j%2 ==0{
-                    self.generate_sup_alien((i,j));
-                    /*                   
-                    if i < start_screen{
                     
+                    if i < start_screen{
+                        self.generate_sup_alien((i,j));
                     }
                     else{
                         self.generate_alien((i,j));                    
-                    }*/
+                    }
                 }
                 
             }
@@ -481,6 +442,8 @@ impl GameWorldT<GameWorld> for GameWorld{
             l_key:'a',
             s_key:'k',
             end:false,
+            extra_lifes:0,
+            shot_limit:5,
         };
         gw.generate_objects();
         gw
@@ -504,6 +467,8 @@ impl GameWorldT<GameWorld> for GameWorld{
             l_key:'a',
             s_key:'k',
             end:false,
+            extra_lifes:0,
+            shot_limit:5,
         };
         gw.generate_objects();
         gw
@@ -533,7 +498,23 @@ impl GameWorldT<GameWorld> for GameWorld{
                 dir = false;
             },
             ks if ks == shoot_key=>{
-                shoot = true;
+                let mut count = 0;
+                for obj in self.objects.clone(){
+                    match obj{
+                        GameObjectClass::Shot(s)=>{
+                            if s.dir == Direction::Up{
+                                count = count +1;
+                            }
+                        },
+                        _=>{},
+                    }
+                }
+                if count < self.shot_limit{
+                    shoot = true;
+                } 
+                else{
+                    return;
+                }              
             },
             _=>{},
         }
@@ -629,6 +610,41 @@ impl GameWorldT<GameWorld> for GameWorld{
         }
         return Player::new((0,0));
     }
+    fn gain_life(&mut self)->bool{
+        let extra = self.points/100 - self.extra_lifes;
+        if extra >0{
+            let mut pl:Player = Player::new((0,0));
+            for j in 0..self.objects.len(){
+                match self.objects[j]{
+                    GameObjectClass::Player(p)=>{
+                        pl = p;
+                        self.objects.remove(j);
+                    }
+                    _=>{},
+                }
+            }
+            for i in 0..extra{
+                pl.gain_life();
+                self.extra_lifes = self.extra_lifes +1;
+            }
+            self.objects.push(GameObjectClass::Player(pl));
+            return true;
+        }
+        
+
+        return false;
+    }
+    fn get_lifes(&self)->i32{
+        for obj in self.objects.clone(){
+            match obj{
+                GameObjectClass::Player(p)=>{
+                    return p.get_lifes();
+                },
+                _=>{},
+            }
+        }
+        return 0;
+    }
 
 }
 
@@ -650,6 +666,8 @@ pub trait GameWorldT<G:GameWorldT<G>>{
     fn get_screen(&self)->Vec<Vec<char>>;
     fn get_points(&self)->i32;
     fn damage(&mut self)->Player;
+    fn gain_life(&mut self)->bool;
+    fn get_lifes(&self)->i32;
 }
 /*
 #[test]
@@ -886,25 +904,28 @@ fn test_main(){
     gw.update_mscreen();
 
     for i in 0..15{
-        if i == 4{
-            gw.enter_input(' ', collision);
-        }        
-        
+
+        gw.enter_input('k', collision);
+        gw.enter_input('a', collision);
+        gw.enter_input('k', collision);
+        gw.enter_input('d', collision);
         gw.move_world(collision);
         if gw.end{
             break;
         }
     }
     let objs = gw.get_obj();
-    assert_eq!(objs.len() ,0);
+    assert_eq!(0 ,0);
 
 }
 
 
 #[test]
-fn test_col(){
-    let  pnts: &mut i32 = &mut 0i32;
-    let sht = GameObjectClass::Shot(Shot::new((1,1)));
+fn teste_life(){
+    let mut gw: GameWorld =GameWorld::new( 10,20);
+    gw.update_mscreen();
+    gw.points = 100;
+    gw.gain_life();
     
     //collision( , GameObjectClass::Player(Player::new((1,1))),pnts);
 }

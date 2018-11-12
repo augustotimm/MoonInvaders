@@ -35,12 +35,13 @@ fn main (){
     let mut gw: GameWorld =GameWorld::new( 10,20);
     gw.update_mscreen();
     
-    for i in 0..15{
+    loop{
         print_screen(&mut gw);
         let crono: Instant = Instant::now();
 
         loop{
             if crono.elapsed() > dur{
+                gw.gain_life();
                 gw.move_world(collision);
                 break;
             }
@@ -83,6 +84,7 @@ fn print_screen(gw: &mut GameWorld){
     if !gw.get_end(){
         gw.update_mscreen(); 
         println!("{green}{points}{reset}",green = color::Fg(color::Green),points = gw.get_points() ,reset = color::Fg(color::Reset));
+        println!("{blue}{lifes}{reset}",blue = color::Fg(color::Blue),lifes = gw.get_lifes() ,reset = color::Fg(color::Reset));
     }    
     let screen = gw.get_screen();
     
