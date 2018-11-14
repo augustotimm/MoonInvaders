@@ -32,7 +32,7 @@ fn main (){
     let dur = Duration::from_millis(1000/FPS);
     let mut handle = Future::spawn(move|| read_input());
 
-    let mut gw: GameWorld =GameWorld::new( 10,20);
+    let mut gw: GameWorld =GameWorld::new( 10,5);
     gw.update_mscreen();
     
     loop{
@@ -53,30 +53,8 @@ fn main (){
                 print_screen(&mut gw);
             }
             
-        }        
-        //gw.move_world(collision);
-        
-
-        
-    }
-    
-
-
-    
-
-    //while true{
-//        
-        
-  /*      loop{
-            if crono.elapsed() > dur{
-                print_screen( gw.get_screen());
-                break;
-            }
-            
-        }*/
-
-    //}
-  
+        }
+    } 
 }
 
 fn print_screen(gw: &mut GameWorld){

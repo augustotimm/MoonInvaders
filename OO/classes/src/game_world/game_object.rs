@@ -74,7 +74,7 @@ pub struct Alien{
 
 #[derive(Copy,Clone)]
 pub struct Player{
-    pub my_base:Base,
+    my_base:Base,
     lifes:i32,
 
 }
@@ -131,7 +131,7 @@ impl BaseT for Player{
         self.my_base.position
     }
     fn set_pos(& mut self,npos:(i8,i8)){
-        self.my_base.set_pos(npos);
+        
     }
 }
 pub trait PlayerT: GameObjectT<Player> + BaseT{

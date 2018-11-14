@@ -326,10 +326,11 @@ impl GameWorld{
                 
             }
         }
+        self.objects = new_objs;
         if win{
             self.end_game(true);
         }
-        self.objects = new_objs;
+        
         errors::ScreenLimit::Ok((0,0))
     }
 
@@ -388,6 +389,11 @@ impl GameWorld{
         let pl = Player::new_img(GameImages::Player.value(), pos);
         let gpl =GameObjectClass::Player( pl );
         self.objects.push(gpl);
+    }
+    fn reset(&mut self){
+        self.objects = Vec::new();
+        self.generate_objects();
+        return;
     }
 }
 
@@ -474,6 +480,10 @@ impl GameWorldT<GameWorld> for GameWorld{
         gw
     }
     fn end_game(&mut self,win:bool){
+        if win{
+            self.reset();
+            return;
+        }
         self.gs.end_screen(win,self.points);
         self.end = true;
         self.objects = Vec::new();
@@ -669,7 +679,7 @@ pub trait GameWorldT<G:GameWorldT<G>>{
     fn gain_life(&mut self)->bool;
     fn get_lifes(&self)->i32;
 }
-/*
+
 #[test]
 fn test_movew(){
     let mut sc = GameScreen::new(3i8, 2i8);
@@ -896,7 +906,7 @@ fn test_bug_player_disappear(){
 
 }
 
-*/
+
 
 #[test]
 fn test_main(){
@@ -920,6 +930,7 @@ fn test_main(){
 }
 
 
+
 #[test]
 fn teste_life(){
     let mut gw: GameWorld =GameWorld::new( 10,20);
@@ -928,6 +939,19 @@ fn teste_life(){
     gw.gain_life();
     
     //collision( , GameObjectClass::Player(Player::new((1,1))),pnts);
+}
+
+#[test]
+fn test_reset(){
+    let mut gw: GameWorld =GameWorld::new( 10,20);
+    gw.update_mscreen();
+    gw.objects = Vec::new();
+    assert_eq!(gw.objects.len(),0);
+    //gw.reset();
+    gw.generate_player((0,0));
+    gw.move_world(collision);
+    assert_ne!(gw.objects.len(),1);
+    
 }
 
 fn collision(obj1:GameObjectClass,obj2:GameObjectClass,points:&mut i32)->errors::CollisionErr{

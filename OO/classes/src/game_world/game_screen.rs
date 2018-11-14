@@ -93,6 +93,7 @@ impl GameScreenT for GameScreen{
         self.screen.push(points.to_string().chars().collect() );
         
     }
+    
 }
 
 
