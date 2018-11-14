@@ -102,9 +102,9 @@ fn main() {
                         screen_temp.push(pl.clone());
                         //drop(line_temp);
                         let mut tr_screen = transpose_string_vec(screen_temp.clone());
-                        let _fn: fn(String, &fn(char)->char)-> String = move_one_char;
-                        let _fn2: fn(char)-> char = |y:char|if y == ALIEN{BLANK_SPACE}else{SHOT_OBJ};
-                        tr_screen = move_shot(tr_screen.clone(), SHOT_OBJ, &_fn,&_fn2);
+                        
+                        //let _fn2: fn(char)-> char = |y:char|if y == ALIEN{BLANK_SPACE}else{SHOT_OBJ};
+                        tr_screen = move_shot(tr_screen.clone(), SHOT_OBJ);
                         screen_temp = transpose_string_vec(tr_screen.clone());     
                         screen_temp.pop();
                         alien_screen = screen_temp;
@@ -139,7 +139,7 @@ fn main() {
 }
 
 fn read_input() -> char{
-let stdin = 0; // couldn't get std::os::unix::io::FromRawFd to work 
+    let stdin = 0; // couldn't get std::os::unix::io::FromRawFd to work 
                    // on /dev/stdin or /dev/tty
     let termios = Termios::from_fd(stdin).unwrap();
     let mut new_termios = termios.clone();  // make a mutable copy of termios 
@@ -499,7 +499,8 @@ fn create_shot(mut player_line: String) -> String{
 
 
 }
-fn move_shot(mut screen:Vec<String>,shot:char, move_somewhere: &fn(String, &fn(char)->char)-> String, resolve:&fn(char)->char)-> Vec<String>{   
+fn move_shot(mut screen:Vec<String>,shot:char)->Vec<String>{//&fn(char)->char)-> Vec<String>{   
+        
      if screen.is_empty(){
         return Vec::new(); 
     }
@@ -508,8 +509,8 @@ fn move_shot(mut screen:Vec<String>,shot:char, move_somewhere: &fn(String, &fn(c
         let last = screen[0].remove(length);
         if last == shot{
             screen[0].insert(length,last);
-            let new_line= move_somewhere(screen[0].clone(),resolve);
-            
+            //let new_line= move_somewhere(screen[0].clone(),|y:char|if y == ALIEN{BLANK_SPACE}else{SHOT_OBJ});
+            let new_line = move_one_char(screen[0].clone(),|y:char|if y == ALIEN{BLANK_SPACE}else{SHOT_OBJ});
             screen.remove(0);
             screen.insert(0,new_line);
             return screen;
@@ -519,7 +520,7 @@ fn move_shot(mut screen:Vec<String>,shot:char, move_somewhere: &fn(String, &fn(c
             screen[0].insert(length,last);
             let head = screen[0].clone();
             screen.remove(0);
-            let mut rest = move_shot(screen.clone(), shot, move_somewhere, resolve);
+            let mut rest = move_shot(screen.clone(), shot);
             rest.insert(0, head);
             return rest;
         }
@@ -528,7 +529,8 @@ fn move_shot(mut screen:Vec<String>,shot:char, move_somewhere: &fn(String, &fn(c
 
 }
 
-fn move_one_char(mut s:String, resolve:&fn(char)->char)-> String{
+fn move_one_char<F>(mut s:String, resolve:F)-> String
+    where F: Fn(char)->char{
     let length = s.len() -1;
     let first =  s.remove(length);
     let second = s.remove(length-1);
@@ -617,7 +619,7 @@ fn move_equals_left(mut s:String, compared:char) ->String{
 
 fn check_victory(alien_space:Vec<String>)->bool{    
     
-    let ans:Vec<bool> =alien_space.into_iter().map(|x| return victory_condition(x)(ALIEN)).collect();
+    let ans:Vec<bool> =alien_space.into_iter().map(|x| victory_condition(x)(ALIEN)).collect();
     return ! ans.contains(&true);
     fn victory_condition(vec:String)-> impl Fn(char)->bool{
        move |x| vec.contains(x)
